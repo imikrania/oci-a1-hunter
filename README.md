@@ -3,8 +3,15 @@
 Keeps trying to launch an Oracle Cloud **Always Free Ampere A1** instance
 (`VM.Standard.A1.Flex`) until capacity appears, then stops.
 
-Runs as a GitHub Actions scheduled workflow (every 5 minutes) so it keeps
-hunting while your own machine is asleep, locked or off.
+Runs every 5 minutes as a GitHub Actions workflow. **In this repo the
+GitHub-native `schedule` trigger never fires** (0 scheduled runs observed over
+hours while `workflow_dispatch` works fine), so the tick comes from a local
+Hermes cron job that calls this workflow's dispatch API every 5 minutes — see
+the note in `.github/workflows/hunt.yml`. The `schedule:` block stays as free
+redundancy.
+
+Trade-off: the hunt now needs the machine that runs Hermes to be up (locked is
+fine; shut down or asleep is not). While it is down, no ticks fire.
 
 ## How it works
 
