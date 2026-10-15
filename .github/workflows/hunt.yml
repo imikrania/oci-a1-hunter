@@ -90,7 +90,11 @@ jobs:
         run: |
           BODY=$(printf 'The capacity hunter reports a win.\n\nRun: %s/%s/actions/runs/%s\n\nNext: stop the hunter so it stops polling, then continue with the Hindsight build.\n\n    gh workflow disable hunt.yml\n' \
             "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+          TITLE="A1 instance provisioned - disable the hunt workflow"
+          if [ "${{ inputs.test_notify }}" = "true" ]; then
+            TITLE="[TEST] $TITLE"
+          fi
           gh issue create \
             --repo "$GITHUB_REPOSITORY" \
-            --title "A1 instance provisioned - disable the hunt workflow" \
+            --title "$TITLE" \
             --body "$BODY"
