@@ -19,6 +19,10 @@ while IFS= read -r line || [ -n "$line" ]; do
   key="${line%%=*}"
   val="${line#*=}"                          # keeps any later '=' (ssh keys, etc.)
   [ -n "$key" ] || continue
+  if [ -z "$val" ] || [ "$val" = "REPLACE_ME" ]; then
+    echo "  !! $key is not filled in (empty or REPLACE_ME) - aborting" >&2
+    exit 1
+  fi
   printf '%s' "$val" | gh secret set "$key" --repo "$REPO"
   echo "  set $key"
 done < "$ENV_FILE"

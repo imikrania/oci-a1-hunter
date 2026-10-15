@@ -43,7 +43,8 @@ fi
 # --- 2. availability domains ----------------------------------------------
 mapfile -t ADS < <(oci iam availability-domain list \
   --compartment-id "$OCI_TENANCY_OCID" \
-  --query 'data[*].name' --raw-output 2>/dev/null)
+  --query 'data[*].name' --raw-output 2>/dev/null \
+  | tr -d '[]"' | tr ',' '\n' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//' | grep -v '^$')
 
 if [ "${#ADS[@]}" -eq 0 ]; then
   say "FATAL: could not list availability domains - check credentials, tenancy OCID and region"

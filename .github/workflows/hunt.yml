@@ -59,4 +59,6 @@ jobs:
           OCI_OCPUS: ${{ secrets.OCI_OCPUS }}
           OCI_MEMORY_GB: ${{ secrets.OCI_MEMORY_GB }}
           OCI_DISPLAY_NAME: ${{ secrets.OCI_DISPLAY_NAME }}
-        run: bash hunt.sh | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          set -o pipefail          # do NOT let `tee` swallow hunt.sh's exit code
+          bash hunt.sh | tee -a "$GITHUB_STEP_SUMMARY"
