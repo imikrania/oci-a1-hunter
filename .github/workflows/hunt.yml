@@ -1,0 +1,62 @@
+name: OCI A1 capacity hunter
+
+# Writes nothing back to the repo. Each run:
+#   1. exits immediately if an instance named OCI_DISPLAY_NAME already exists
+#   2. otherwise tries to launch VM.Standard.A1.Flex in every availability domain
+# Exit 1 only on a fatal (config/auth) error, so a quiet "no capacity" run stays green.
+
+on:
+  # Public repo => standard-runner minutes are unlimited, so a 5-minute cadence is free.
+  # (A private copy would burn the GitHub Free 2,000 min/month allowance in days.) See README.
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: oci-a1-hunter
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install OCI CLI
+        run: pip install --quiet --disable-pip-version-check oci-cli
+
+      - name: Write OCI credentials
+        env:
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_REGION: ${{ secrets.OCI_REGION }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.oci"
+          printf '[DEFAULT]\nuser=%s\nfingerprint=%s\ntenancy=%s\nregion=%s\nkey_file=%s\n' \
+            "$OCI_USER_OCID" "$OCI_FINGERPRINT" "$OCI_TENANCY_OCID" "$OCI_REGION" "$HOME/.oci/oci_api_key.pem" \
+            > "$HOME/.oci/config"
+          printf '%s\n' "$OCI_PRIVATE_KEY" > "$HOME/.oci/oci_api_key.pem"
+          chmod 600 "$HOME/.oci/config" "$HOME/.oci/oci_api_key.pem"
+
+      - name: Hunt
+        env:
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_COMPARTMENT_OCID: ${{ secrets.OCI_COMPARTMENT_OCID }}
+          OCI_IMAGE_ID: ${{ secrets.OCI_IMAGE_ID }}
+          OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
+          OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+          OCI_OCPUS: ${{ secrets.OCI_OCPUS }}
+          OCI_MEMORY_GB: ${{ secrets.OCI_MEMORY_GB }}
+          OCI_DISPLAY_NAME: ${{ secrets.OCI_DISPLAY_NAME }}
+        run: bash hunt.sh | tee -a "$GITHUB_STEP_SUMMARY"

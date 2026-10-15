@@ -1,0 +1,4 @@
+.venv/
+oci.env
+*.pem
+*.key

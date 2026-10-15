@@ -1,0 +1,39 @@
+name: keepalive
+
+# GitHub disables scheduled workflows in a PUBLIC repository after 60 days with
+# no repository activity. One tiny commit a day keeps the hunt's schedule alive.
+# Delete this file if you don't want the daily commit (e.g. you expect to win
+# capacity within two months).
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: keepalive
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  beat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Heartbeat commit
+        run: |
+          set -euo pipefail
+          date -u +'%Y-%m-%dT%H:%M:%SZ' > heartbeat.txt
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add heartbeat.txt
+          if git diff --staged --quiet; then
+            echo "no change"
+          else
+            git commit -m "heartbeat $(date -u +%F)"
+            git push
+          fi
