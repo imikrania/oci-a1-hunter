@@ -7,8 +7,11 @@ name: OCI A1 capacity hunter
 # On a win it opens an issue (GitHub emails on issues, not on green runs).
 
 on:
-  # Public repo => standard-runner minutes are unlimited, so a 5-minute cadence is free.
-  # (A private copy would burn the GitHub Free 2,000 min/month allowance in days.) See README.
+  # NOTE: this repo's GitHub-native `schedule` never actually fires (observed: 0
+  # scheduled runs over hours, while workflow_dispatch works fine). The real tick
+  # comes from a local Hermes cron job that calls this workflow's dispatch API
+  # every 5 minutes. This schedule is kept only as free redundancy.
+  # Public repo => standard-runner minutes are unlimited, so the cadence is free.
   schedule:
     - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
   workflow_dispatch:
