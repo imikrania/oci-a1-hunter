@@ -10,7 +10,7 @@ on:
   # Public repo => standard-runner minutes are unlimited, so a 5-minute cadence is free.
   # (A private copy would burn the GitHub Free 2,000 min/month allowance in days.) See README.
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
   workflow_dispatch:
     inputs:
       test_notify:
